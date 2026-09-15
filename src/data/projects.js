@@ -1,0 +1,132 @@
+export const PROJECTS_DATA = [
+  {
+    id: "autohive",
+    number: "01",
+    name: "AutoHive",
+    category: "Full Stack",
+    subcategory: "Automotive Web Portal",
+    description:
+      "Dynamic automotive portal built with PHP and MySQL for inventory management and vehicle discovery.",
+    features: [
+      "Admin dashboard",
+      "Content moderation",
+      "Custom search filters",
+      "Secure form validation",
+    ],
+    liveUrl: "https://autohive.kesug.com",
+    githubUrl: null, // Only Oxford Sofa has verified repository URL
+    technologies: ["PHP", "MySQL", "HTML", "CSS", "JavaScript"],
+    theme: "automotive",
+    accentColor: "#D4AF37",
+    metrics: [
+      { label: "Backend Architecture", value: "PHP / MySQL" },
+      { label: "Core Feature", value: "Fleet Inventory Management" },
+      { label: "Access Control", value: "Admin Moderation" },
+    ],
+  },
+  {
+    id: "cinemasticket",
+    number: "02",
+    name: "CinemasTicket",
+    category: "Full Stack",
+    subcategory: "Movie Booking Platform",
+    description:
+      "Online movie ticketing system built with PHP and MySQL with scheduling and seat booking simulation.",
+    features: [
+      "User authentication",
+      "Access controls",
+      "Movie scheduling",
+      "Seat booking simulation",
+      "Database protection",
+    ],
+    liveUrl: "https://cinemasticket.kesug.com",
+    githubUrl: null,
+    technologies: ["PHP", "MySQL", "HTML", "CSS", "JavaScript"],
+    theme: "cinema",
+    accentColor: "#E5C07B",
+    metrics: [
+      { label: "Booking Engine", value: "Interactive Seat Layout" },
+      { label: "Security", value: "Session Auth & DB Protection" },
+      { label: "Scheduling", value: "Showtime Management" },
+    ],
+  },
+  {
+    id: "oxford-sofa",
+    number: "03",
+    name: "Oxford Sofa",
+    category: "Frontend",
+    subcategory: "E-Commerce Landing Storefront",
+    description:
+      "Modern e-commerce storefront built using HTML5, CSS3 and native JavaScript.",
+    features: [
+      "CSS Grid layout",
+      "Flexbox alignment",
+      "Responsive design",
+      "Smooth animations",
+      "Cross-device compatibility",
+    ],
+    liveUrl: "https://faiq-rehman.github.io/E-Project_OXFORD-SOFA",
+    githubUrl: "https://github.com/faiq-rehman/E-Project_OXFORD-SOFA",
+    technologies: ["HTML5", "CSS3", "JavaScript"],
+    theme: "furniture",
+    accentColor: "#DFCBA4",
+    metrics: [
+      { label: "Interface Standard", value: "Pure Vanilla JS" },
+      { label: "Layout Strategy", value: "CSS Grid & Flexbox" },
+      { label: "Responsiveness", value: "Multi-viewport Fluidity" },
+    ],
+  },
+  {
+    id: "fitness-tracker",
+    number: "04",
+    name: "Fitness Tracker",
+    category: "Frontend",
+    subcategory: "Fitness Tracking Web App",
+    description:
+      "Responsive fitness tracking interface for logging workouts and monitoring progress.",
+    features: [
+      "Workout logging",
+      "Progress monitoring",
+      "Responsive interface",
+      "Clean navigation",
+      "User-focused UI",
+    ],
+    liveUrl: "https://fitness-tracker-frontend-one.vercel.app",
+    githubUrl: null,
+    technologies: ["React", "JavaScript", "CSS", "HTML"],
+    theme: "fitness",
+    accentColor: "#64D2FF",
+    metrics: [
+      { label: "Framework", value: "React.js SPA" },
+      { label: "Telemetry", value: "Workout Activity Logging" },
+      { label: "Experience", value: "Fluid Component UI" },
+    ],
+  },
+  {
+    id: "furshield",
+    number: "05",
+    name: "FurShield",
+    category: "Frontend",
+    subcategory: "Pet Care Web App",
+    description:
+      "Pet-care management platform designed to help owners track and safeguard their pets' wellbeing.",
+    features: [
+      "Responsive UI",
+      "Pet-care management",
+      "Smooth navigation",
+      "User-friendly interface",
+    ],
+    liveUrl: "https://furshield-frontend-one.vercel.app",
+    githubUrl: null,
+    technologies: ["React", "JavaScript", "CSS", "HTML"],
+    theme: "petcare",
+    accentColor: "#E0B384",
+    metrics: [
+      { label: "Framework", value: "React Component Model" },
+      { label: "Domain", value: "Pet Wellness Management" },
+      { label: "Usability", value: "Streamlined Navigation" },
+    ],
+  },
+];
+
+export const PROJECT_CATEGORIES = ["All", "Frontend", "Backend", "Full Stack"];
