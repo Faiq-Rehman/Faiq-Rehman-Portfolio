@@ -8,7 +8,6 @@ import {
   Activity,
   HeartPulse,
   Check,
-  Layers,
 } from "lucide-react";
 import GithubIcon from "./icons/GithubIcon";
 
@@ -462,16 +461,17 @@ export default function ProjectCard({ project, index }) {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
+      viewport={{ once: true, margin: "-30px" }}
+      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1], delay: index * 0.07 }}
       whileHover={{ y: -6 }}
       className="glass-card"
       style={{
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
+        transition: "border-color var(--transition-normal), box-shadow var(--transition-normal)",
       }}
     >
       <div>
@@ -579,7 +579,7 @@ export default function ProjectCard({ project, index }) {
             </div>
           </div>
 
-          {/* Technology Badges */}
+          {/* Technology Badges with Smooth Transitions */}
           <div
             style={{
               display: "flex",
@@ -599,6 +599,18 @@ export default function ProjectCard({ project, index }) {
                   background: "rgba(255, 255, 255, 0.04)",
                   border: "1px solid rgba(255, 255, 255, 0.08)",
                   color: "var(--text-secondary)",
+                  transition: "all var(--transition-fast)",
+                  cursor: "default",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(212, 175, 55, 0.35)";
+                  e.currentTarget.style.color = "var(--gold-light)";
+                  e.currentTarget.style.background = "rgba(212, 175, 55, 0.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)";
+                  e.currentTarget.style.color = "var(--text-secondary)";
+                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
                 }}
               >
                 {tech}
@@ -624,6 +636,7 @@ export default function ProjectCard({ project, index }) {
           href={project.liveUrl}
           target="_blank"
           rel="noopener noreferrer"
+          aria-label={`View live demo of ${project.name}`}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -644,14 +657,23 @@ export default function ProjectCard({ project, index }) {
           onMouseEnter={(e) => {
             e.currentTarget.style.background = "var(--gold-primary)";
             e.currentTarget.style.color = "#000";
+            e.currentTarget.style.boxShadow = "0 0 16px rgba(212, 175, 55, 0.35)";
+            const svg = e.currentTarget.querySelector("svg");
+            if (svg) svg.style.transform = "translate(2px, -2px)";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = "rgba(212, 175, 55, 0.12)";
             e.currentTarget.style.color = "var(--gold-light)";
+            e.currentTarget.style.boxShadow = "none";
+            const svg = e.currentTarget.querySelector("svg");
+            if (svg) svg.style.transform = "translate(0, 0)";
           }}
         >
           <span>Live Demo</span>
-          <ExternalLink size={15} />
+          <ExternalLink
+            size={15}
+            style={{ transition: "transform var(--transition-fast)" }}
+          />
         </a>
 
         {project.githubUrl && (
@@ -659,6 +681,7 @@ export default function ProjectCard({ project, index }) {
             href={project.githubUrl}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={`View source code of ${project.name}`}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -677,13 +700,24 @@ export default function ProjectCard({ project, index }) {
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = "var(--gold-primary)";
               e.currentTarget.style.color = "var(--gold-light)";
+              e.currentTarget.style.background = "rgba(212, 175, 55, 0.08)";
+              e.currentTarget.style.boxShadow = "0 0 16px rgba(212, 175, 55, 0.2)";
+              const svg = e.currentTarget.querySelector("svg");
+              if (svg) svg.style.transform = "translateY(-1px) scale(1.08)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = "var(--border-medium)";
               e.currentTarget.style.color = "var(--text-primary)";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
+              e.currentTarget.style.boxShadow = "none";
+              const svg = e.currentTarget.querySelector("svg");
+              if (svg) svg.style.transform = "translateY(0) scale(1)";
             }}
           >
-            <GithubIcon size={16} />
+            <GithubIcon
+              size={16}
+              style={{ transition: "transform var(--transition-fast)" }}
+            />
             <span>Code</span>
           </a>
         )}

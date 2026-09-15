@@ -1,59 +1,115 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+
+const checkIsTouchDevice = () => {
+  if (typeof window === "undefined") return true;
+  return (
+    window.matchMedia("(pointer: coarse)").matches ||
+    window.matchMedia("(hover: none)").matches ||
+    "ontouchstart" in window ||
+    navigator.maxTouchPoints > 0
+  );
+};
 
 export default function CursorGlow() {
-  const [position, setPosition] = useState({ x: -200, y: -200 });
-  const [isVisible, setIsVisible] = useState(false);
-  const [isTouch, setIsTouch] = useState(true);
+  const glowRef = useRef(null);
+  const [isTouchDevice] = useState(checkIsTouchDevice);
 
   useEffect(() => {
-    // Check if device is touch or fine pointer
-    const isTouchDevice =
-      window.matchMedia("(pointer: coarse)").matches ||
-      "ontouchstart" in window ||
-      navigator.maxTouchPoints > 0;
-
-    setIsTouch(isTouchDevice);
-
     if (isTouchDevice) return;
 
+    let animationFrameId;
+    let isRunning = false;
+    let targetX = -300;
+    let targetY = -300;
+    let currentX = -300;
+    let currentY = -300;
+    let isVisible = false;
+
+    const updatePosition = () => {
+      // Smooth linear interpolation (lerp) toward mouse position for luxury floating effect
+      const ease = 0.09;
+      currentX += (targetX - currentX) * ease;
+      currentY += (targetY - currentY) * ease;
+
+      if (glowRef.current) {
+        glowRef.current.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
+      }
+
+      const dx = Math.abs(targetX - currentX);
+      const dy = Math.abs(targetY - currentY);
+
+      // Keep running smoothly until settled
+      if (dx > 0.1 || dy > 0.1) {
+        animationFrameId = requestAnimationFrame(updatePosition);
+      } else {
+        isRunning = false;
+      }
+    };
+
     const handleMouseMove = (e) => {
-      setPosition({ x: e.clientX, y: e.clientY });
-      if (!isVisible) setIsVisible(true);
+      targetX = e.clientX;
+      targetY = e.clientY;
+
+      if (!isVisible && glowRef.current) {
+        isVisible = true;
+        glowRef.current.style.opacity = "1";
+      }
+
+      if (!isRunning) {
+        isRunning = true;
+        animationFrameId = requestAnimationFrame(updatePosition);
+      }
     };
 
     const handleMouseLeave = () => {
-      setIsVisible(false);
+      isVisible = false;
+      if (glowRef.current) {
+        glowRef.current.style.opacity = "0";
+      }
+    };
+
+    const handleMouseEnter = () => {
+      if (targetX > 0 && targetY > 0 && glowRef.current) {
+        isVisible = true;
+        glowRef.current.style.opacity = "1";
+      }
     };
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
     document.addEventListener("mouseleave", handleMouseLeave);
+    document.addEventListener("mouseenter", handleMouseEnter);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseleave", handleMouseLeave);
+      document.removeEventListener("mouseenter", handleMouseEnter);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
     };
-  }, [isVisible]);
+  }, [isTouchDevice]);
 
-  if (isTouch) return null;
+  if (isTouchDevice) return null;
 
   return (
     <div
+      ref={glowRef}
       aria-hidden="true"
       style={{
         position: "fixed",
         top: 0,
         left: 0,
-        transform: `translate3d(${position.x}px, ${position.y}px, 0) translate(-50%, -50%)`,
-        width: "550px",
-        height: "550px",
+        width: "540px",
+        height: "540px",
         borderRadius: "50%",
         background:
-          "radial-gradient(circle, rgba(212, 175, 55, 0.07) 0%, rgba(212, 175, 55, 0.02) 40%, transparent 70%)",
+          "radial-gradient(circle, rgba(244, 229, 184, 0.18) 0%, rgba(212, 175, 55, 0.11) 30%, rgba(212, 175, 55, 0.03) 55%, transparent 72%)",
         pointerEvents: "none",
         zIndex: 1,
-        opacity: isVisible ? 1 : 0,
-        transition: "opacity 0.4s ease, transform 0.08s linear",
+        opacity: 0,
+        transition: "opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1)",
         willChange: "transform, opacity",
+        transform: "translate3d(-300px, -300px, 0) translate(-50%, -50%)",
       }}
     />
   );

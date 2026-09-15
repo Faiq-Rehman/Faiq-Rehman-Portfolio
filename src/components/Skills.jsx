@@ -6,7 +6,6 @@ import {
   Database,
   Terminal,
   FileSpreadsheet,
-  CheckCircle,
   Sparkles,
 } from "lucide-react";
 import { SKILL_CATEGORIES } from "../data/skills";

@@ -1,7 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, ArrowUpRight, Code2, Terminal, ShieldCheck, Cpu } from "lucide-react";
-import { DEVELOPER_INFO } from "../data/developer";
+import { ArrowRight, ArrowUpRight, ShieldCheck, Cpu } from "lucide-react";
 
 export default function Hero() {
   const scrollTo = (id) => {

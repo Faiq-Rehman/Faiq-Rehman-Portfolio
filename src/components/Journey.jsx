@@ -1,6 +1,5 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Milestone, ArrowRight, ShieldCheck } from "lucide-react";
 import { JOURNEY_STAGES } from "../data/journey";
 
 export default function Journey() {

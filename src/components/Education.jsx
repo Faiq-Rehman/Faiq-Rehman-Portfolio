@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { GraduationCap, Calendar, MapPin, CheckCircle } from "lucide-react";
+import { Calendar, MapPin, CheckCircle } from "lucide-react";
 import { EDUCATION_DATA } from "../data/education";
 
 export default function Education() {

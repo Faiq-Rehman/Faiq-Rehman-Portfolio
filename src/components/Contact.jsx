@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import emailjs from "@emailjs/browser";
 import {
   Mail,
   Phone,
@@ -7,9 +8,11 @@ import {
   Send,
   Copy,
   Check,
+  CheckCircle,
   ExternalLink,
   AlertCircle,
   MessageSquare,
+  Loader2,
 } from "lucide-react";
 import GithubIcon from "./icons/GithubIcon";
 import { DEVELOPER_INFO } from "../data/developer";
@@ -24,7 +27,8 @@ export default function Contact() {
 
   const [errors, setErrors] = useState({});
   const [copiedEmail, setCopiedEmail] = useState(false);
-  const [submittedStatus, setSubmittedStatus] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState(null);
 
   const validate = () => {
     const newErrors = {};
@@ -45,7 +49,9 @@ export default function Contact() {
       newErrors.subject = "Please enter a message subject.";
     }
 
-    if (!formData.message.trim() || formData.message.trim().length < 10) {
+    if (!formData.message.trim()) {
+      newErrors.message = "Please enter your message.";
+    } else if (formData.message.trim().length < 10) {
       newErrors.message = "Message must be at least 10 characters long.";
     }
 
@@ -61,29 +67,73 @@ export default function Contact() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validate()) {
       return;
     }
 
-    // Transparent client dispatch via mailto (honest UX, no fake server toasts)
-    const subjectEncoded = encodeURIComponent(
-      `[Portfolio Inquiry] ${formData.subject}`
-    );
-    const bodyEncoded = encodeURIComponent(
-      `Hi Faiq,\n\nMy Name: ${formData.name}\nMy Email: ${formData.email}\n\nMessage:\n${formData.message}\n\nSent from your portfolio contact form.`
-    );
+    if (isSubmitting) return;
 
-    const mailtoUrl = `mailto:${DEVELOPER_INFO.email}?subject=${subjectEncoded}&body=${bodyEncoded}`;
+    setIsSubmitting(true);
+    setSubmissionResult(null);
 
-    setSubmittedStatus("opening");
-    window.location.href = mailtoUrl;
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
-    setTimeout(() => {
-      setSubmittedStatus("ready");
-    }, 1500);
+    // Strict validation: if EmailJS credentials are not configured or placeholder, do not pretend success
+    if (
+      !serviceId ||
+      !templateId ||
+      !publicKey ||
+      serviceId === "your_emailjs_service_id"
+    ) {
+      setIsSubmitting(false);
+      setSubmissionResult({
+        type: "error",
+        message:
+          "Something went wrong. Please try again or contact me directly by email.",
+      });
+      return;
+    }
+
+    try {
+      const templateParams = {
+        name: formData.name.trim(),
+        visitor_name: formData.name.trim(),
+        email: formData.email.trim(),
+        visitor_email: formData.email.trim(),
+        subject: formData.subject.trim(),
+        message: formData.message.trim(),
+        reply_to: formData.email.trim(),
+        to_email: DEVELOPER_INFO.email,
+      };
+
+      await emailjs.send(serviceId, templateId, templateParams, publicKey);
+
+      setSubmissionResult({
+        type: "success",
+        message: "Message sent successfully. I'll get back to you soon.",
+      });
+      setFormData({
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
+      setErrors({});
+    } catch (err) {
+      console.error("EmailJS dispatch error:", err);
+      setSubmissionResult({
+        type: "error",
+        message:
+          "Something went wrong. Please try again or contact me directly by email.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const copyEmail = () => {
@@ -323,6 +373,7 @@ export default function Contact() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 gap: "1rem",
+                transition: "all var(--transition-fast)",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -338,6 +389,7 @@ export default function Contact() {
                     justifyContent: "center",
                     color: "var(--gold-primary)",
                     flexShrink: 0,
+                    transition: "all var(--transition-fast)",
                   }}
                 >
                   <GithubIcon size={20} />
@@ -370,6 +422,7 @@ export default function Contact() {
                 href={DEVELOPER_INFO.github}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Visit Faiq Rehman on GitHub"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -384,11 +437,114 @@ export default function Contact() {
                   textDecoration: "none",
                   transition: "all var(--transition-fast)",
                 }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(212, 175, 55, 0.15)";
+                  e.currentTarget.style.borderColor = "rgba(212, 175, 55, 0.5)";
+                  e.currentTarget.style.transform = "translateY(-2px) scale(1.04)";
+                  e.currentTarget.style.boxShadow = "0 0 15px rgba(212, 175, 55, 0.25)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                  e.currentTarget.style.borderColor = "var(--border-subtle)";
+                  e.currentTarget.style.transform = "translateY(0) scale(1)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
               >
                 <span>Visit</span>
                 <ExternalLink size={13} />
               </a>
             </div>
+
+            {/* LinkedIn Card - conditionally rendered only if an authentic URL is present */}
+            {DEVELOPER_INFO.linkedin && (
+              <div
+                className="glass-card"
+                style={{
+                  padding: "1.5rem 1.75rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "1rem",
+                  transition: "all var(--transition-fast)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                  <div
+                    style={{
+                      width: "46px",
+                      height: "46px",
+                      borderRadius: "12px",
+                      background: "rgba(212, 175, 55, 0.12)",
+                      border: "1px solid rgba(212, 175, 55, 0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "var(--gold-primary)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <ExternalLink size={20} />
+                  </div>
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "0.75rem",
+                        color: "var(--text-muted)",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Professional Network
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "var(--font-display)",
+                        fontSize: "1rem",
+                        fontWeight: 600,
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      LinkedIn
+                    </div>
+                  </div>
+                </div>
+
+                <a
+                  href={DEVELOPER_INFO.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
+                    padding: "0.5rem 0.85rem",
+                    borderRadius: "8px",
+                    background: "rgba(255, 255, 255, 0.05)",
+                    border: "1px solid var(--border-subtle)",
+                    color: "var(--gold-light)",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.75rem",
+                    textDecoration: "none",
+                    transition: "all var(--transition-fast)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(212, 175, 55, 0.15)";
+                    e.currentTarget.style.borderColor = "rgba(212, 175, 55, 0.5)";
+                    e.currentTarget.style.transform = "translateY(-2px) scale(1.04)";
+                    e.currentTarget.style.boxShadow = "0 0 15px rgba(212, 175, 55, 0.25)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                    e.currentTarget.style.borderColor = "var(--border-subtle)";
+                    e.currentTarget.style.transform = "translateY(0) scale(1)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  <span>Connect</span>
+                  <ExternalLink size={13} />
+                </a>
+              </div>
+            )}
           </motion.div>
 
           {/* Right Column: Contact Form with Frontend Validation */}
@@ -697,9 +853,9 @@ export default function Contact() {
               >
                 <MessageSquare size={14} color="var(--gold-primary)" />
                 <span>
-                  Dispatches via your default email client to{" "}
+                  Delivers directly to{" "}
                   <strong style={{ color: "var(--gold-light)" }}>
-                    faiqrehman28@gmail.com
+                    {DEVELOPER_INFO.email}
                   </strong>
                 </span>
               </div>
@@ -707,28 +863,97 @@ export default function Contact() {
               {/* Submit Button */}
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="btn-luxury-primary"
-                style={{ width: "100%" }}
+                style={{
+                  width: "100%",
+                  opacity: isSubmitting ? 0.75 : 1,
+                  cursor: isSubmitting ? "not-allowed" : "pointer",
+                }}
               >
-                <span>Send Message</span>
-                <Send size={16} />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={16} className="spin-animation" />
+                    <span>Sending...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Send Message</span>
+                    <Send size={16} />
+                  </>
+                )}
               </button>
 
-              {submittedStatus && (
+              {submissionResult && submissionResult.type === "success" && (
                 <div
+                  role="status"
                   style={{
-                    marginTop: "1rem",
-                    padding: "0.75rem",
-                    borderRadius: "8px",
-                    background: "rgba(212, 175, 55, 0.1)",
-                    border: "1px solid rgba(212, 175, 55, 0.3)",
-                    color: "var(--gold-light)",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.8125rem",
-                    textAlign: "center",
+                    marginTop: "1.25rem",
+                    padding: "0.9rem 1.1rem",
+                    borderRadius: "10px",
+                    background: "rgba(16, 185, 129, 0.12)",
+                    border: "1px solid rgba(16, 185, 129, 0.35)",
+                    color: "#34d399",
+                    fontFamily: "var(--font-sans)",
+                    fontSize: "0.875rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.6rem",
                   }}
                 >
-                  Opening your default mail client with pre-formatted inquiry...
+                  <CheckCircle size={18} style={{ flexShrink: 0 }} />
+                  <span>{submissionResult.message}</span>
+                </div>
+              )}
+
+              {submissionResult && submissionResult.type === "error" && (
+                <div
+                  role="alert"
+                  style={{
+                    marginTop: "1.25rem",
+                    padding: "0.9rem 1.1rem",
+                    borderRadius: "10px",
+                    background: "rgba(239, 68, 68, 0.1)",
+                    border: "1px solid rgba(239, 68, 68, 0.3)",
+                    color: "#fca5a5",
+                    fontFamily: "var(--font-sans)",
+                    fontSize: "0.875rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <AlertCircle
+                      size={18}
+                      style={{ flexShrink: 0, color: "#ef4444" }}
+                    />
+                    <span>{submissionResult.message}</span>
+                  </div>
+                  <a
+                    href={`mailto:${DEVELOPER_INFO.email}?subject=${encodeURIComponent(
+                      formData.subject
+                        ? `[Portfolio Inquiry] ${formData.subject}`
+                        : "Portfolio Inquiry"
+                    )}&body=${encodeURIComponent(
+                      `Hi Faiq,\n\nName: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
+                    )}`}
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.8125rem",
+                      color: "var(--gold-light)",
+                      textDecoration: "underline",
+                      marginLeft: "1.6rem",
+                    }}
+                  >
+                    Direct Email: {DEVELOPER_INFO.email}
+                  </a>
                 </div>
               )}
             </form>
