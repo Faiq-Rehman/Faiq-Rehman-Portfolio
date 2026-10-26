@@ -10,9 +10,13 @@ import {
   ExternalLink,
   AlertCircle,
   MessageSquare,
+  Loader2,
 } from "lucide-react";
 import GithubIcon from "./icons/GithubIcon";
 import { DEVELOPER_INFO } from "../data/developer";
+import Toast from "./Toast";
+
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xdkwkwap";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -24,7 +28,8 @@ export default function Contact() {
 
   const [errors, setErrors] = useState({});
   const [copiedEmail, setCopiedEmail] = useState(false);
-  const [submittedStatus, setSubmittedStatus] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const validate = () => {
     const newErrors = {};
@@ -61,29 +66,67 @@ export default function Contact() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isSubmitting) return;
 
     if (!validate()) {
       return;
     }
 
-    // Transparent client dispatch via mailto (honest UX, no fake server toasts)
-    const subjectEncoded = encodeURIComponent(
-      `[Portfolio Inquiry] ${formData.subject}`
-    );
-    const bodyEncoded = encodeURIComponent(
-      `Hi Faiq,\n\nMy Name: ${formData.name}\nMy Email: ${formData.email}\n\nMessage:\n${formData.message}\n\nSent from your portfolio contact form.`
-    );
+    setIsSubmitting(true);
 
-    const mailtoUrl = `mailto:${DEVELOPER_INFO.email}?subject=${subjectEncoded}&body=${bodyEncoded}`;
+    try {
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          subject: formData.subject.trim(),
+          message: formData.message.trim(),
+        }),
+      });
 
-    setSubmittedStatus("opening");
-    window.location.href = mailtoUrl;
-
-    setTimeout(() => {
-      setSubmittedStatus("ready");
-    }, 1500);
+      if (response.ok) {
+        setToast({
+          type: "success",
+          title: "Message Sent Successfully!",
+          description:
+            "Thank you for reaching out. Your message has been submitted successfully.",
+        });
+        // Clear form only on successful submission
+        setFormData({
+          name: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
+        setErrors({});
+      } else {
+        // Display professional error notification
+        setToast({
+          type: "error",
+          title: "Message Could Not Be Sent",
+          description:
+            "Something went wrong while sending your message. Please try again.",
+        });
+      }
+    } catch {
+      // Network or unexpected failure
+      setToast({
+        type: "error",
+        title: "Message Could Not Be Sent",
+        description:
+          "Something went wrong while sending your message. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const copyEmail = () => {
@@ -697,44 +740,44 @@ export default function Contact() {
               >
                 <MessageSquare size={14} color="var(--gold-primary)" />
                 <span>
-                  Dispatches via your default email client to{" "}
+                  Direct delivery to{" "}
                   <strong style={{ color: "var(--gold-light)" }}>
-                    faiqrehman28@gmail.com
-                  </strong>
+                    {DEVELOPER_INFO.email}
+                  </strong>{" "}
+                  • Fast response guaranteed
                 </span>
               </div>
 
               {/* Submit Button */}
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="btn-luxury-primary"
-                style={{ width: "100%" }}
+                style={{
+                  width: "100%",
+                  opacity: isSubmitting ? 0.75 : 1,
+                  cursor: isSubmitting ? "not-allowed" : "pointer",
+                }}
               >
-                <span>Send Message</span>
-                <Send size={16} />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={16} className="spin-animation" />
+                    <span>Sending Message...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Send Message</span>
+                    <Send size={16} />
+                  </>
+                )}
               </button>
-
-              {submittedStatus && (
-                <div
-                  style={{
-                    marginTop: "1rem",
-                    padding: "0.75rem",
-                    borderRadius: "8px",
-                    background: "rgba(212, 175, 55, 0.1)",
-                    border: "1px solid rgba(212, 175, 55, 0.3)",
-                    color: "var(--gold-light)",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "0.8125rem",
-                    textAlign: "center",
-                  }}
-                >
-                  Opening your default mail client with pre-formatted inquiry...
-                </div>
-              )}
             </form>
           </motion.div>
         </div>
       </div>
+
+      {/* Top-Right Notification Toast */}
+      <Toast toast={toast} onClose={() => setToast(null)} />
 
       <style>{`
         @media (min-width: 1024px) {

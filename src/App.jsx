@@ -1,4 +1,5 @@
 import React from "react";
+import BackgroundAnimation from "./components/BackgroundAnimation";
 import CursorGlow from "./components/CursorGlow";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
@@ -22,6 +23,9 @@ export default function App() {
         overflowX: "hidden",
       }}
     >
+      {/* Subtle Scroll-Responsive Luxury Background Animation */}
+      <BackgroundAnimation />
+
       {/* Desktop Ambient Cursor Glow */}
       <CursorGlow />
 
@@ -29,7 +33,7 @@ export default function App() {
       <Navbar />
 
       {/* Main Content Sections */}
-      <main>
+      <main style={{ position: "relative", zIndex: 1 }}>
         <Hero />
         <HeroStats />
 

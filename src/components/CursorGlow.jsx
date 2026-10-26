@@ -3,18 +3,17 @@ import React, { useEffect, useState } from "react";
 export default function CursorGlow() {
   const [position, setPosition] = useState({ x: -200, y: -200 });
   const [isVisible, setIsVisible] = useState(false);
-  const [isTouch, setIsTouch] = useState(true);
-
-  useEffect(() => {
-    // Check if device is touch or fine pointer
-    const isTouchDevice =
+  const [isTouch] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return (
       window.matchMedia("(pointer: coarse)").matches ||
       "ontouchstart" in window ||
-      navigator.maxTouchPoints > 0;
+      navigator.maxTouchPoints > 0
+    );
+  });
 
-    setIsTouch(isTouchDevice);
-
-    if (isTouchDevice) return;
+  useEffect(() => {
+    if (isTouch) return;
 
     const handleMouseMove = (e) => {
       setPosition({ x: e.clientX, y: e.clientY });
@@ -32,7 +31,7 @@ export default function CursorGlow() {
       window.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [isVisible]);
+  }, [isVisible, isTouch]);
 
   if (isTouch) return null;
 
